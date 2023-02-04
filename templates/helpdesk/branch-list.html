@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h4>Основная ветка</h4> 
+        <a href="{% url 'helpdesk:branch-detail' %}">Main</a><br>
+    <h4>Мои ветки</h4>
+    {% for object in object_list %}
+        <a href="{% url 'helpdesk:branch-detail' object.pk %}">{{ object.name }}</a><br>
+    {% empty %}
+        <h4>Нет веток</h4>
+    {% endfor %}
+    <a href="{% url 'helpdesk:branch-create' %}">Создать ветку</a>
+{% endblock %}

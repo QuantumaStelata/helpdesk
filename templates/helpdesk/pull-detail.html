@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <p>{{ object.status }}</p>
+    <p>{{ object.branch }}</p>
+
+    <ul>
+        {% for field in fields %}
+            {% if field.deleted %}
+                <li>{{ field }} удален</li>
+            {% elif not field.original %}
+                <li>{{ field }} додан</li>
+            {% else %}
+                <li>{{ field }} {% if field.id in fields_conflict %}(CONFLICT){% endif %}</li>
+                <ul>
+                    {% if field.type != field.original.type %}
+                        <li>Type: {{ field.original.type }} -> {{ field.type }}</li>
+                    {% endif %}
+                    {% if field.label != field.original.label %}
+                        <li>Label: {{ field.original.label }} -> {{ field.label }}</li>
+                    {% endif %}
+                </ul>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    Fields conf: {{ fields_conflict }}
+    Nodes conf: {{ nodes_conflict }}
+    <a href="{% url 'helpdesk:pull-merge' object.id %}">Merge</a>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h3>Мои пуллы</h5>
+    {% for object in object_list %}
+        <a href="{% url 'helpdesk:pull-detail' object.pk %}">{{ object.status }} {{ object.branch }}</a><br>
+    {% empty %}
+        <h4>Нет веток</h6>
+    {% endfor %}
+{% endblock %}

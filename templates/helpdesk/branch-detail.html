@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block scripts %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+{% endblock %}
+
+{% block content %}
+    <h3>{{ branch.name }}</h3>
+
+    <div id="tree"></div>
+    {% if branch.id %}
+        <a href="{% url 'helpdesk:pull-create' branch.id %}">Создать Pull</a><br>
+    {% endif %}
+    <a href="{% url 'helpdesk:branch-list' %}">Branch List</a>
+    <script>
+        $(document).ready(() => {
+            $('#tree').jstree({
+                core : { 'data' : addToTree },
+                types: {
+                    "field": { "icon" : "fa fa-list-alt text-success" },
+                    "node": { "icon" : "fa fa-code-fork text-primary" },
+                    "default": { "icon": "fa fa-sliders text-muted" },
+                },
+                plugins: ["types"]
+            })
+
+            function getField(id) {
+                return $.ajax({
+                    url: id ? `/api/fields/${id}/` : '/api/fields/{% if branch.id %}?branch_id={{ branch.id }}{% endif %}',
+                    success: function(data) {
+                        data.text = data.label + `<i class="fa-solid fa-pen text-warning ml-2"></i>` + `<i class="fa-solid fa-trash ml-2 text-danger"></i>`
+                        data.field_type = data.type
+                        data.type = "field"
+                        data.children = true
+                    }
+                })
+            }
+
+            function getNode(id) {
+                return $.ajax({
+                    url: `/api/nodes/${id}/`,
+                    success: function(data) {
+                        data.children = true
+                        data.type = "node"
+                    }
+                })
+            }
+
+            function addToTree(node, cb) {
+                if (node.id === '#') {
+                    getField().then((node) => cb(node))
+                } else if (node.original?.label) {
+                    let promises = []
+                    let node_info = [
+                        { "text": `Type: ${node.original.field_type}` },
+                        { "text": `Label: ${node.original.label}` },
+                        { "text": `Placeholder: ${node.original.placeholder}` },
+                        { "text": `Help Text: ${node.original.help_text}` },
+                        { "text": `Min: ${node.original.min_length} | Max: ${node.original.max_length}` },
+                        { "text": `Initial: ${node.original.initial} | Required: ${node.original.required}` },
+                    ]
+
+                    for (let id of node.original.child_nodes) {
+                        promises.push(getNode(id))
+                    }
+
+                    Promise.all(promises).then((nodes) => cb.call(this, node_info.concat(nodes)))
+                    
+                } else if (node.original?.value) {
+                    let promises = []
+                    let node_info = [
+                        { "text": `Text: ${node.original.text}` },
+                        { "text": `Value: ${node.original.value}` },
+                        { "text": `Is active: ${node.original.is_active}` },
+                    ]
+
+                    for (let id of node.original.child_fields) {
+                        promises.push(getField(id))
+                    }
+                    
+                    Promise.all(promises).then((nodes) => cb(node_info.concat(nodes)))
+                }
+            }
+        })
+    </script>
+{% endblock %}
