@@ -2,7 +2,6 @@ from helpdesk.models import Field, Node
 from helpdesk.utils import HelpDeskTree
 
 import uuid
-from itertools import zip_longest
 
 
 def create_branch(branch):
@@ -77,15 +76,8 @@ def pull_merge(pull):
             branch_obj = obj.__class__.objects.get(id=branch_obj_id)
             branch_obj.original_id = obj.id
             branch_obj.save()
-            
-            if isinstance(obj, Field):
-                obj.child_nodes.set(
-                    [node.original for node in branch_obj.child_nodes.all()]
-                )
-            elif isinstance(obj, Node):
-                obj.child_fields.set(
-                    [field.original for field in branch_obj.child_fields.all()]
-                )
+
+            obj.child_fields.set([child.original for child in childs])
             
             return 
 
