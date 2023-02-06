@@ -46,12 +46,11 @@ def pull_detail(pull):
         
         for field in obj.get_fields_names:
             if hasattr(getattr(obj.original, field), "through"):
-                childs = childs.order_by("-original__id")
-                org_childs = getattr(obj.original, field).all().order_by("-id").select_related("original")
+                childs = set(childs.values_list("original_id", flat=True))
+                org_childs = set(getattr(obj.original, field).all().values_list("id", flat=True))
 
-                for child, org_child in zip_longest(childs, org_childs):
-                    if not child or not org_child or not child.original or child.original_id != org_child.id:
-                        return differences[key].append(obj.id)
+                if childs ^ org_childs:
+                    return differences[key].append(obj.id)
 
             elif getattr(obj.original, field) != getattr(obj, field):
                 return differences[key].append(obj.id)
@@ -66,25 +65,46 @@ def pull_merge(pull):
 
     def merge(obj, childs, *args, **kwargs):
         if not obj.original:
-            obj.branch = None
+            # Если у объекта в ветке нет оригинала, создаем его
+            # Подвязываем объект в ветке к оригиналу и связываем с оригинальными дочерними объектами
+            # После выходим из функции, т.к. нам не надо проверять соответствие полей
+
+            branch_obj_id = obj.id
+
+            obj.id = obj.branch = None
+            obj.save()
+            
+            branch_obj = obj.__class__.objects.get(id=branch_obj_id)
+            branch_obj.original_id = obj.id
+            branch_obj.save()
+            
+            if isinstance(obj, Field):
+                obj.child_nodes.set(
+                    [node.original for node in branch_obj.child_nodes.all()]
+                )
+            elif isinstance(obj, Node):
+                obj.child_fields.set(
+                    [field.original for field in branch_obj.child_fields.all()]
+                )
+            
+            return 
+
+        # Перебираем поля чувствительные к версионности
+        # И сравниваем с полями оригинального объекта
 
         for field in obj.get_fields_names:
             if hasattr(getattr(obj.original, field), "through"):
-                pass
-                # setattr(obj.original, field, getattr(obj, field))
-                # m2m_changed.connect(cls.m2m_changed, getattr(getattr(cls, field), "through"))
+                getattr(obj.original, field).set(
+                    [child.original for child in getattr(obj, field).all()]
+                )
             elif getattr(obj.original, field) != getattr(obj, field):   
                 setattr(obj.original, field, getattr(obj, field))
 
         version = uuid.uuid4()
         obj.version = version
         obj.save()
-
-        if obj.original:
-            obj.original.version = version
-            obj.original.save()
-
-        return obj, obj.original
+        obj.original.version = version
+        obj.original.save()
 
     tree.add_post_deepening(merge).execute()
 
