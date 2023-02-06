@@ -50,8 +50,10 @@ class VersionAbstract(models.Model):
     @classmethod
     @property
     def get_fields_names(cls):
-        all_fields = set(field.name for field in cls._meta.fields + cls._meta.many_to_many if field.name != "id")
-        parent_fields = set(field.name for field in VersionAbstract._meta.fields + VersionAbstract._meta.many_to_many if field.name != "id")
+        exclude_fields = ["id", "dt_create", "dt_update"]
+
+        all_fields = set(field.name for field in cls._meta.fields + cls._meta.many_to_many if field.name not in exclude_fields)
+        parent_fields = set(field.name for field in VersionAbstract._meta.fields + VersionAbstract._meta.many_to_many if field.name not in exclude_fields)
         return list(all_fields ^ parent_fields)
 
 

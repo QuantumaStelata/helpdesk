@@ -2,7 +2,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.views import View
 from django.views.generic import TemplateView, ListView, DetailView, CreateView
 
-from .models import Field
+from .models import Field, Node
 from vcs import utils
 from vcs.models import Branch, PullRequest
 
@@ -62,16 +62,16 @@ class PullDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        diffs = utils.pull_detail(context["object"], ttl=utils.get_ttl())
+        diffs = utils.pull_detail(context["object"])
 
         if diffs["fields"]:
             context["fields"] = Field.objects.filter(id__in=diffs["fields"])
         
         if diffs["nodes"]:
-            context["nodes"] = Field.objects.filter(id__in=diffs["nodes"])
+            context["nodes"] = Node.objects.filter(id__in=diffs["nodes"])
 
-        context["fields_conflict"] = diffs["fields_conflict"]
-        context["nodes_conflict"] = diffs["nodes_conflict"]
+        context["fields_conflict"] = diffs["conflicts"]["fields"]
+        context["nodes_conflict"] = diffs["conflicts"]["nodes"]
 
         return context
 

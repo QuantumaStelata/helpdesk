@@ -32,7 +32,7 @@
                 return $.ajax({
                     url: id ? `/api/fields/${id}/` : '/api/fields/{% if branch.id %}?branch_id={{ branch.id }}{% endif %}',
                     success: function(data) {
-                        data.text = data.label + `<i class="fa-solid fa-pen text-warning ml-2"></i>` + `<i class="fa-solid fa-trash ml-2 text-danger"></i>`
+                        data.text = data.label // + `<i class="fa-solid fa-pen text-warning ml-2"></i>` + `<i class="fa-solid fa-trash ml-2 text-danger"></i>`
                         data.field_type = data.type
                         data.type = "field"
                         data.children = true

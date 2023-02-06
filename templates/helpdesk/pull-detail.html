@@ -19,11 +19,50 @@
                     {% if field.label != field.original.label %}
                         <li>Label: {{ field.original.label }} -> {{ field.label }}</li>
                     {% endif %}
+                    {% if field.placeholder != field.original.placeholder %}
+                        <li>Placeholder: {{ field.original.placeholder }} -> {{ field.placeholder }}</li>
+                    {% endif %}
+                    {% if field.help_text != field.original.help_text %}
+                        <li>Help text: {{ field.original.help_text }} -> {{ field.help_text }}</li>
+                    {% endif %}
+                    {% if field.min_length != field.original.min_length %}
+                        <li>Min length: {{ field.original.min_length }} -> {{ field.min_length }}</li>
+                    {% endif %}
+                    {% if field.max_length != field.original.max_length %}
+                        <li>Max length: {{ field.original.max_length }} -> {{ field.max_length }}</li>
+                    {% endif %}
+                    {% if field.initial != field.original.initial %}
+                        <li>Initial: {{ field.original.initial }} -> {{ field.initial }}</li>
+                    {% endif %}
+                    {% if field.required != field.original.required %}
+                        <li>Required: {{ field.original.required }} -> {{ field.required }}</li>
+                    {% endif %}
+                    {% if field.child_nodes.all != field.original.child_nodes.all %}
+                        <li>Nodes: {{ field.original.child_nodes.all }} -> {{ field.child_nodes.all }}</li>
+                    {% endif %}
                 </ul>
             {% endif %}
         {% endfor %}
     </ul>
-    Fields conf: {{ fields_conflict }}
-    Nodes conf: {{ nodes_conflict }}
+    <ul>
+        {% for node in nodes %}
+                {% if node.deleted %}
+                    <li>{{ node }} удален</li>
+                {% elif not node.original %}
+                    <li>{{ node }} додан</li>
+                {% else %}
+                    <li>{{ node }} {% if node.id in nodes_conflict %}(CONFLICT){% endif %}</li>
+                    <ul>
+                        {% if node.text != field.original.text %}
+                            <li>Text: {{ node.original.text }} -> {{ node.text }}</li>
+                        {% endif %}
+                        {% if node.value != node.original.value %}
+                            <li>Value: {{ node.original.value }} -> {{ node.value }}</li>
+                        {% endif %}
+                    </ul>
+                {% endif %}
+        {% endfor %}
+    </ul>
+
     <a href="{% url 'helpdesk:pull-merge' object.id %}">Merge</a>
 {% endblock %}
