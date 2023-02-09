@@ -1,0 +1,67 @@
+.vakata-context,
+.vakata-context ul {
+  padding: 0.5rem 0;
+  min-width: 150px;
+  font-size: 1rem;
+  font-family: Inter, Helvetica, "sans-serif";
+  background: #FFF;
+  box-shadow: 0px 0px 50px 0px rgba(82, 63, 105, 0.15);
+  border: 0;
+  border-radius: 0.475rem;
+}
+.vakata-context li,
+.vakata-context ul li {
+  padding: 0;
+  border: 0;
+}
+.vakata-context li a,
+.vakata-context ul li a {
+  padding: 0rem 1.2rem;
+  border: 0;
+  font-size: 0.9em; 
+}
+.vakata-context li a i,
+.vakata-context ul li a i {
+  display: none;
+}
+.vakata-context li a .vakata-contextmenu-sep,
+.vakata-context ul li a .vakata-contextmenu-sep {
+  display: none;
+}
+.vakata-context li a span,
+.vakata-context li a ins,
+.vakata-context ul li a span,
+.vakata-context ul li a ins {
+  display: none;
+  border: 0 !important;
+}
+.vakata-context .vakata-context-hover > a,
+.vakata-context li a:hover,
+.vakata-context ul .vakata-context-hover > a,
+.vakata-context ul li a:hover {
+  margin: 0;
+  background-color: #F9F9F9;
+  color: #009ef7;
+  box-shadow: none;
+}
+.vakata-context li a[rel="2"]:hover {
+  color: #dc3545;
+}
+.vakata-context .vakata-context-hover > a .span,
+.vakata-context .vakata-context-hover > a .ins,
+.vakata-context li a:hover .span,
+.vakata-context li a:hover .ins,
+.vakata-context ul .vakata-context-hover > a .span,
+.vakata-context ul .vakata-context-hover > a .ins,
+.vakata-context ul li a:hover .span,
+.vakata-context ul li a:hover .ins {
+  border: 0 !important;
+}
+
+.vakata-context .vakata-context-separator a,
+.vakata-context-rtl .vakata-context-separator a {
+  margin: 0;
+  border: 0;
+  height: 2px;
+  background-color: #F4F4F4;
+}

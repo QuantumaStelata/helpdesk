@@ -5,20 +5,14 @@ import uuid
 
 
 def create_branch(branch):
-    tree = HelpDeskTree()
-
     def copy_elem(obj, childs, *args, **kwargs):
         obj.original_id = obj.id
         obj.id = None
         obj.branch = branch
         obj.save()
+        obj.childs.set(childs)
 
-        if isinstance(obj, Field) and childs:
-            obj.child_nodes.set(childs)
-        elif isinstance(obj, Node) and childs:
-            obj.child_fields.set(childs)
-
-    tree.add_post_deepening(copy_elem).execute()
+    HelpDeskTree().add_func(copy_elem).execute()
 
 
 def pull_detail(pull):
@@ -42,19 +36,17 @@ def pull_detail(pull):
         
         if obj.original.version != obj.version:
             differences["conflicts"][key].append(obj.id)
-        
+
+        childs = set(childs.values_list("original_id", flat=True))
+        org_childs = set(obj.original.childs.all().values_list("id", flat=True))
+        if childs ^ org_childs:
+            return differences[key].append(obj.id)
+
         for field in obj.get_fields_names:
-            if hasattr(getattr(obj.original, field), "through"):
-                childs = set(childs.values_list("original_id", flat=True))
-                org_childs = set(getattr(obj.original, field).all().values_list("id", flat=True))
-
-                if childs ^ org_childs:
-                    return differences[key].append(obj.id)
-
-            elif getattr(obj.original, field) != getattr(obj, field):
+            if getattr(obj.original, field) != getattr(obj, field) and field != "parent":
                 return differences[key].append(obj.id)
 
-    tree.add_post_deepening(check_identical).execute()
+    tree.add_func(check_identical).execute()
 
     return differences
 
@@ -77,19 +69,19 @@ def pull_merge(pull):
             branch_obj.original_id = obj.id
             branch_obj.save()
 
-            obj.child_fields.set([child.original for child in childs])
+            obj.childs.set([child.original for child in childs])
             
             return 
+
+        # Оригинальные дети - наше всё
+
+        obj.original.childs.set([child.original for child in obj.childs.all() if child.original])
 
         # Перебираем поля чувствительные к версионности
         # И сравниваем с полями оригинального объекта
 
         for field in obj.get_fields_names:
-            if hasattr(getattr(obj.original, field), "through"):
-                getattr(obj.original, field).set(
-                    [child.original for child in getattr(obj, field).all()]
-                )
-            elif getattr(obj.original, field) != getattr(obj, field):   
+            if getattr(obj.original, field) != getattr(obj, field) and field != "parent":
                 setattr(obj.original, field, getattr(obj, field))
 
         version = uuid.uuid4()
@@ -98,7 +90,7 @@ def pull_merge(pull):
         obj.original.version = version
         obj.original.save()
 
-    tree.add_post_deepening(merge).execute()
+    tree.add_func(merge).execute()
 
     pull.status = 2
     pull.save()

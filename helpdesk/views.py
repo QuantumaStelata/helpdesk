@@ -1,8 +1,12 @@
 from django.shortcuts import redirect, get_object_or_404
 from django.views import View
-from django.views.generic import TemplateView, ListView, DetailView, CreateView
+from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView
+from django.views.decorators.csrf import csrf_exempt
+from django.http.response import HttpResponse
+from django.utils.decorators import method_decorator
 
 from .models import Field, Node
+from .forms import FieldForm, NodeForm
 from vcs import utils
 from vcs.models import Branch, PullRequest
 
@@ -94,3 +98,109 @@ class PullMergeView(View):
         pull = PullRequest.objects.get(id=pull_id)
         utils.pull_merge(pull)
         return redirect("helpdesk:pull-detail", pull_id=pull_id)
+
+
+class FieldCreateView(CreateView):
+    model = Field
+    form_class = FieldForm
+    template_name = "form.html"
+
+    def get_initial(self):
+        initial = super().get_initial()
+
+        if parent := self.request.GET.get("parent"):
+            initial["parent"] = parent
+        
+        if branch := self.request.GET.get("branch"):
+            initial["branch"] = branch
+        
+        initial["creator"] = self.request.user
+
+        return initial
+    
+    def form_valid(self, form):
+        form.save()
+        return HttpResponse()
+    
+    def form_invalid(self, form):
+        response =  super().form_invalid(form)
+        response.status_code = 400
+        return response
+
+
+class FieldUpdateView(UpdateView):
+    model = Field
+    form_class = FieldForm
+    template_name = "form.html"
+
+    def form_valid(self, form):
+        form.save()
+        return HttpResponse()
+    
+    def form_invalid(self, form):
+        response =  super().form_invalid(form)
+        response.status_code = 400
+        return response
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class FieldDeleteView(View):
+    def post(self, request, pk, *args, **kwargs):
+        field = get_object_or_404(Field, pk=pk)
+        field.deleted = True
+        field.save()
+
+        return HttpResponse()
+
+
+class NodeCreateView(CreateView):
+    model = Node
+    form_class = NodeForm
+    template_name = "form.html"
+
+    def get_initial(self):
+        initial = super().get_initial()
+
+        if parent := self.request.GET.get("parent"):
+            initial["parent"] = parent
+        
+        if branch := self.request.GET.get("branch"):
+            initial["branch"] = branch
+        
+        initial["creator"] = self.request.user
+
+        return initial
+
+    def form_valid(self, form):
+        form.save()
+        return HttpResponse()
+
+    def form_invalid(self, form):
+        response =  super().form_invalid(form)
+        response.status_code = 400
+        return response
+
+
+class NodeUpdateView(UpdateView):
+    model = Node
+    form_class = NodeForm
+    template_name = "form.html"
+
+    def form_valid(self, form):
+        form.save()
+        return HttpResponse()
+    
+    def form_invalid(self, form):
+        response =  super().form_invalid(form)
+        response.status_code = 400
+        return response
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class NodeDeleteView(View):
+    def post(self, request, pk, *args, **kwargs):
+        node = get_object_or_404(Node, pk=pk)
+        node.deleted = True
+        node.save()
+
+        return HttpResponse()

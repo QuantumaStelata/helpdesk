@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.db.models.signals import pre_save, post_save
 
 import uuid
 
@@ -26,6 +27,11 @@ class VersionAbstract(models.Model):
 
     class Meta:
         abstract = True
+    
+    @classmethod
+    def __init_subclass__(cls, *args, **kwargs):
+        pre_save.connect(cls.pre_save, cls)
+        post_save.connect(cls.post_save, cls)
 
     @classmethod
     def pre_save(cls, instance, *args, **kwargs):
@@ -40,12 +46,11 @@ class VersionAbstract(models.Model):
                 if getattr(pre_instance, field) != getattr(instance, field):
                     instance.version = uuid.uuid4()
                     return
-            
+    
     @classmethod
-    def m2m_changed(cls, instance, action, *args, **kwargs):
-        if not instance.branch and action.startswith("post_"):
-            instance.version = uuid.uuid4()
-            instance.save()
+    def post_save(cls, instance, *args, **kwargs):
+        if instance.branch and not instance.original and instance.deleted:
+            instance.delete()
     
     @classmethod
     @property
