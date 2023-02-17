@@ -69,7 +69,7 @@ def pull_merge(pull):
             branch_obj.original_id = obj.id
             branch_obj.save()
 
-            obj.childs.set([child.original for child in childs])
+            obj.childs.set([child.original for child in branch_obj.childs.all() if child.original])
             
             return 
 

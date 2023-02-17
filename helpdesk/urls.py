@@ -21,4 +21,5 @@ urlpatterns = [
    path("node-create/", views.NodeCreateView.as_view(), name="node-create"),
    path("node-update/<slug:pk>/", views.NodeUpdateView.as_view(), name="node-update"),
    path("node-delete/<slug:pk>/", views.NodeDeleteView.as_view(), name="node-delete"),
+   path("", views.MainView.as_view(), name="main"),
 ]

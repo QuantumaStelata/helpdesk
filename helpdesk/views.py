@@ -4,6 +4,7 @@ from django.views.generic import TemplateView, ListView, DetailView, CreateView,
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import HttpResponse
 from django.utils.decorators import method_decorator
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .models import Field, Node
 from .forms import FieldForm, NodeForm
@@ -11,7 +12,12 @@ from vcs import utils
 from vcs.models import Branch, PullRequest
 
 
-class BranchListView(ListView):
+class MainView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        return HttpResponse()
+
+
+class BranchListView(LoginRequiredMixin, ListView):
     template_name = "helpdesk/branch-list.html"
     model = Branch
 
@@ -19,7 +25,7 @@ class BranchListView(ListView):
         return self.request.user.branchs.all() | self.request.user.contribute_branchs.all()
 
 
-class BranchDetailView(TemplateView):
+class BranchDetailView(LoginRequiredMixin, TemplateView):
     template_name = "helpdesk/branch-detail.html"
 
     def get_context_data(self, **kwargs):
@@ -33,7 +39,7 @@ class BranchDetailView(TemplateView):
         return context
 
 
-class BranchCreateView(CreateView):
+class BranchCreateView(LoginRequiredMixin, CreateView):
     model = Branch
     fields = "__all__"
     template_name = "helpdesk/branch-create.html"
@@ -50,7 +56,7 @@ class BranchCreateView(CreateView):
         return redirect("helpdesk:branch-detail", branch_id=branch.id)
 
 
-class PullListView(ListView):
+class PullListView(LoginRequiredMixin, ListView):
     template_name = "helpdesk/pull-list.html"
     model = PullRequest
 
@@ -58,7 +64,7 @@ class PullListView(ListView):
         return self.request.user.pullrequests.all()
 
 
-class PullDetailView(DetailView):
+class PullDetailView(LoginRequiredMixin, DetailView):
     template_name = "helpdesk/pull-detail.html"
     model = PullRequest
     pk_url_kwarg = "pull_id"
@@ -80,7 +86,7 @@ class PullDetailView(DetailView):
         return context
 
 
-class PullCreateView(View):
+class PullCreateView(LoginRequiredMixin, View):
     def get(self, request, branch_id, *args, **kwargs):
         branch = Branch.objects.get(id=branch_id)
         
@@ -93,14 +99,14 @@ class PullCreateView(View):
         return redirect("helpdesk:pull-detail", pull_id=pull.id)
 
 
-class PullMergeView(View):
+class PullMergeView(LoginRequiredMixin, View):
     def get(self, request, pull_id, *args, **kwargs):
         pull = PullRequest.objects.get(id=pull_id)
         utils.pull_merge(pull)
         return redirect("helpdesk:pull-detail", pull_id=pull_id)
 
 
-class FieldCreateView(CreateView):
+class FieldCreateView(LoginRequiredMixin, CreateView):
     model = Field
     form_class = FieldForm
     template_name = "form.html"
@@ -128,7 +134,7 @@ class FieldCreateView(CreateView):
         return response
 
 
-class FieldUpdateView(UpdateView):
+class FieldUpdateView(LoginRequiredMixin, UpdateView):
     model = Field
     form_class = FieldForm
     template_name = "form.html"
@@ -144,7 +150,7 @@ class FieldUpdateView(UpdateView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class FieldDeleteView(View):
+class FieldDeleteView(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         field = get_object_or_404(Field, pk=pk)
         field.deleted = True
@@ -153,7 +159,7 @@ class FieldDeleteView(View):
         return HttpResponse()
 
 
-class NodeCreateView(CreateView):
+class NodeCreateView(LoginRequiredMixin, CreateView):
     model = Node
     form_class = NodeForm
     template_name = "form.html"
@@ -181,7 +187,7 @@ class NodeCreateView(CreateView):
         return response
 
 
-class NodeUpdateView(UpdateView):
+class NodeUpdateView(LoginRequiredMixin, UpdateView):
     model = Node
     form_class = NodeForm
     template_name = "form.html"
@@ -197,7 +203,7 @@ class NodeUpdateView(UpdateView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class NodeDeleteView(View):
+class NodeDeleteView(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         node = get_object_or_404(Node, pk=pk)
         node.deleted = True

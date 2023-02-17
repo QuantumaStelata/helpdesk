@@ -18,7 +18,7 @@ class Field(VersionAbstract, DateEventAbstract, CreatorAbstract):
     }
 
     type = models.CharField(max_length=10, choices=TYPES.items())
-    label = models.TextField(blank=True)
+    label = models.TextField()
     placeholder = models.CharField(max_length=64, blank=True, default="Обери із списку")
     help_text = models.TextField(blank=True)
     min_length = models.IntegerField(blank=True, null=True)

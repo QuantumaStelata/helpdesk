@@ -1,8 +1,8 @@
 from django.shortcuts import redirect
-from django.conf import settings
 
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from helpdesk.models import Field, Node
 from .serializers import FieldSerializer, NodeSerializer
@@ -12,6 +12,7 @@ class FieldViewSet(ModelViewSet):
     queryset = Field.objects.all()
     serializer_class = FieldSerializer
     http_method_names = ['get']
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):    
         queryset = super().get_queryset().exclude(deleted=True)
@@ -32,6 +33,7 @@ class NodeViewSet(ModelViewSet):
     queryset = Node.objects.all()
     serializer_class = NodeSerializer
     http_method_names = ['get']
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return super().get_queryset().exclude(deleted=True)
