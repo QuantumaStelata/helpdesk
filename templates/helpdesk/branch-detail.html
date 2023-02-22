@@ -13,8 +13,8 @@
     {% endif %}
     <a href="{% url 'helpdesk:branch-list' %}">Branch List</a>    
 
-    <script src="{% static 'js/branch-detail.js' %}"></script>
     <script>
         const branch_id = "{% if branch.id %}{{ branch.id }}{% endif %}" || null
     </script>
+    <script src="{% static 'js/branch-detail.js' %}"></script>
 {% endblock %}

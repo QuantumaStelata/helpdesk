@@ -63,9 +63,9 @@ function contextMenu(node) {
 function updateObject(node) {
     return (event) => {
         let url = node.original.type.includes("field") ? 
-            `/helpdesk/field-update/${node.id}/`
+            `/helpdesk/field-update/${node.original.original_id}/`
         : node.original.type.includes("node") ?
-            `/helpdesk/node-update/${node.id}/`
+            `/helpdesk/node-update/${node.original.original_id}/`
         : null
 
         if (!url) { return }
@@ -136,7 +136,7 @@ function addObject(node) {
         return $.ajax({
             url: url,
             data: {
-                parent: node.id,
+                parent: node.original.original_id,
                 branch: branch_id
             },
             success: (html) => {
@@ -183,9 +183,9 @@ function addObject(node) {
 function deleteObject(node) {
     return (event) => {
         let url = node.original.type.includes("field") ? 
-            `/helpdesk/field-delete/${node.id}/`
+            `/helpdesk/field-delete/${node.original.original_id}/`
         : node.original.type.includes("node") ?
-            `/helpdesk/node-delete/${node.id}/`
+            `/helpdesk/node-delete/${node.original.original_id}/`
         : null
 
         if (!url) { return }
@@ -213,7 +213,7 @@ function deleteObject(node) {
 
 function goToBranch(node) {
     return (event) => {
-        window.location.href = `/helpdesk/branch-detail/${branch_id}/?start-${node.type.includes('field') ? "field" : "node"}=${node.id}`
+        window.location.href = `/helpdesk/branch-detail/${branch_id}/?start-${node.type.includes('field') ? "field" : "node"}=${node.original.original_id}`
     }
 }
 
@@ -231,7 +231,9 @@ function getField(id) {
             data.text = data.label
             data.field_type = data.type
             data.type = "field"
-            data.children = data.childs?.length ? true : false
+            data.children = !!data.childs?.length
+            data.original_id = data.id
+            data.id = (Math.random() + 1).toString(36).substring(7)
         }
     })
 }
@@ -240,8 +242,10 @@ function getNode(id) {
     return $.ajax({
         url: `/api/nodes/${id}/`,
         success: function(data) {
-            data.children = data.childs?.length ? true : false
+            data.children = !!data.childs?.length
             data.type = data.is_active ? "node" : "node-not-active"
+            data.original_id = data.id
+            data.id = (Math.random() + 1).toString(36).substring(7)
         }
     })
 }
